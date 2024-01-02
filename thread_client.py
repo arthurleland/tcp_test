@@ -6,6 +6,8 @@ import threading
 def read_fun(conn):
     while True:
         stuff = conn.recv(1024)
+        if not stuff:
+            break
         print("*" + stuff.decode(), end="")
 
 
@@ -28,7 +30,6 @@ def main():
         write_t.start()
 
         read_t.join()
-        write_t.join()
 
     print("all done")
 
