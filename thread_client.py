@@ -17,7 +17,7 @@ def write_fun(conn):
 
 
 def main():
-    HOST = "192.168.0.146"  # The server's hostname or IP address
+    HOST = "192.168.0.128"  # The server's hostname or IP address
     PORT = 10000  # The port used by the server
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as soc:

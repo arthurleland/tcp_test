@@ -18,7 +18,7 @@ def main():
                     data = conn.recv(1024)
                     if not data:
                         break
-                    print(f'received {data!r}'
+                    print(f"received {data!r}")
                     conn.sendall(data.upper())
             print("connection closed")
 
