@@ -20,20 +20,19 @@ def main():
     HOST = "192.168.8.100"  # Standard loopback interface address (localhost)
     PORT = 10000  # Port to listen on (non-privileged ports are > 1023)
 
-    while True:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind((HOST, PORT))
-            s.listen()
-            conn, addr = s.accept()
-            with conn:
-                print(f"connection on: {conn.getsockname()}")
-                read_t = threading.Thread(target=read_fun, args=(conn,))
-                write_t = threading.Thread(target=write_fun, args=(conn,))
-                read_t.start()
-                write_t.start()
-                read_t.join()
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((HOST, PORT))
+        s.listen()
+        conn, addr = s.accept()
+        with conn:
+            print(f"connection on: {conn.getsockname()}")
+            read_t = threading.Thread(target=read_fun, args=(conn,))
+            write_t = threading.Thread(target=write_fun, args=(conn,))
+            read_t.start()
+            write_t.start()
+            read_t.join()
 
-        print("all done")
+    print("all done")
 
 
 if __name__ == "__main__":
