@@ -4,7 +4,7 @@ import socket
 def main():
     # SERVER = ""  # all interfaces
     # SERVER = "10.1.10.111"  # usb-ethernet adapter tplink
-    SERVER = "192.168.8.100"  # usb-wifi adapter long ears
+    SERVER = "192.168.12.100"  # usb-wifi adapter long ears
     PORT = 10000  # Port to listen on (non-privileged ports are > 1023)
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
