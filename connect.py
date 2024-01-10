@@ -1,5 +1,6 @@
 import socket
 import sys
+import time
 
 
 def main():
@@ -11,7 +12,15 @@ def main():
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # soc.bind((CLIENT, 0))
     soc.connect((SERVER, PORT))
+    soc.sendall(b"hi")
     soc.close()
+
+    while True:
+        data = soc.recv(1024)
+        if not data:
+            print("data empty")
+            break
+        print("received: ", data.decode())
 
     print("client all done")
 

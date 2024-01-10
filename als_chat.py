@@ -109,6 +109,7 @@ def main():
 
     run_server(server_addr, port)
     # run_client(server_addr,port)
+    print("leaving main")
 
 
 if __name__ == "__main__":
