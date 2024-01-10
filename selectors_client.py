@@ -26,7 +26,7 @@ def write(conn, sel):
         conn.close()
         return
 
-    print("snd: ", line, end="")
+    print("send: ", line, end="")
     conn.sendall(line.encode())
 
 
@@ -46,7 +46,7 @@ def main():
     sel.register(sys.stdin, selectors.EVENT_READ, (write, soc, sel))
 
     while True:
-        events = sel.select()
+        events = sel.select(timeout=0.1)
         for key, mask in events:
             callback = key.data[0]
             callback(*key.data[1:])
