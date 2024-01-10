@@ -7,7 +7,7 @@ def read(conn, sel):
     data = conn.recv(1024)
 
     if not data:
-        print("recv close", conn)
+        print("recv close")
         sel.unregister(conn)
         sel.unregister(sys.stdin)
         conn.close()
