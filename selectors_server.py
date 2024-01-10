@@ -3,7 +3,7 @@ import socket
 import sys
 
 
-def read(conn):
+def read(conn, sel):
     data = conn.recv(1024)
 
     if not data:
@@ -16,7 +16,7 @@ def read(conn):
     print("recv: ", data.decode(), end="")
 
 
-def write(conn):
+def write(conn, sel):
     line = sys.stdin.readline()
 
     if line == "\n":
@@ -44,8 +44,8 @@ def main():
     conn, addr = soc.accept()
     print("accepted", conn, "from", addr)
     conn.setblocking(False)
-    sel.register(conn, selectors.EVENT_READ, (read, conn))
-    sel.register(sys.stdin, selectors.EVENT_READ, (write, conn))
+    sel.register(conn, selectors.EVENT_READ, (read, conn, sel))
+    sel.register(sys.stdin, selectors.EVENT_READ, (write, conn, sel))
 
     while True:
         events = sel.select()
