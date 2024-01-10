@@ -51,7 +51,7 @@ def main():
         events = sel.select()
         for key, mask in events:
             callback = key.data[0]
-            callback(key.data[1])
+            callback(*key.data[1:])
 
     print("all done")
 

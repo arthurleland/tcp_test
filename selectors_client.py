@@ -42,14 +42,14 @@ def main():
     print(f"connected via {soc.getsockname()}")
 
     soc.setblocking(False)
-    sel.register(conn, selectors.EVENT_READ, (read, soc, sel))
+    sel.register(soc, selectors.EVENT_READ, (read, soc, sel))
     sel.register(sys.stdin, selectors.EVENT_READ, (write, soc, sel))
 
     while True:
         events = sel.select()
         for key, mask in events:
             callback = key.data[0]
-            callback(key.data[1])
+            callback(*key.data[1:])
 
     print("all done")
 
