@@ -68,6 +68,11 @@ class ChatClient(SocketMixin):
                 time.sleep(0.1)
 
 
+class ChatSocket(SocketMixin):
+    def __init__(self, sock):
+        self.sock = sock
+
+
 class ChatServer(SocketMixin):
     def __init__(self, server_addr, port):
         self.sel = selectors.DefaultSelector()
