@@ -3,9 +3,8 @@ import sys
 
 
 def main():
-    # SERVER = "192.168.12.102"
-    SERVER = "10.1.10.100"
-    hostname = "arthurschiro.com"
+    SERVER = "192.168.107.100"
+    hostname = None  # "arthurschiro.com"
     # CLIENT = "192.168.0.128"
     PORT = 10000
 

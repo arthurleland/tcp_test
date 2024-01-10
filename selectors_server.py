@@ -3,13 +3,6 @@ import socket
 import sys
 
 
-def accept(soc):
-    conn, addr = soc.accept()
-    print("accepted", conn, "from", addr)
-    conn.setblocking(False)
-    sel.register(conn, selectors.EVENT_READ, read)
-
-
 def read(conn):
     data = conn.recv(1024)
 
