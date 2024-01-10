@@ -3,31 +3,27 @@ import socket
 import sys
 
 
-def read(conn, sel):
-    data = conn.recv(1024)
+class SocketMixin:
+    def read(conn, sel):
+        data = conn.recv(1024)
 
-    if not data:
-        print("recv close")
-        sel.unregister(conn)
-        sel.unregister(sys.stdin)
-        conn.close()
-        return
+        if not data:
+            print("recv close")
+            sel.unregister(conn)
+            return
 
-    print("recv: ", data.decode(), end="")
+        print("recv: ", data.decode(), end="")
 
+    def write(conn, sel):
+        line = sys.stdin.readline()
 
-def write(conn, sel):
-    line = sys.stdin.readline()
+        if line == "\n":
+            print("send close")
+            sel.unregister(sys.stdin)
+            return
 
-    if line == "\n":
-        print("send close")
-        sel.unregister(conn)
-        sel.unregister(sys.stdin)
-        conn.close()
-        return
-
-    print("send: ", line, end="")
-    conn.sendall(line.encode())
+        print("send: ", line, end="")
+        conn.sendall(line.encode())
 
 
 def main():
@@ -36,8 +32,8 @@ def main():
     SERVER = "192.168.107.100"
     PORT = 10000
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
+    soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     soc.connect((SERVER, PORT))
     print(f"connected via {soc.getsockname()}")
 
