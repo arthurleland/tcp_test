@@ -21,7 +21,7 @@ class SocketMixin:
         if line == "\n":
             print("send done")
             self.sel.unregister(sys.stdin)
-            self.sock.close()
+            self.sock.shutdown(socket.SHUT_WR)
             return
 
         print("send: ", line, end="")
@@ -31,6 +31,7 @@ class SocketMixin:
         while True:
             if len(self.sel.get_map()) == 0:
                 print("chat done")
+                self.sock.close()
                 break
 
             events = self.sel.select(timeout=0.1)
