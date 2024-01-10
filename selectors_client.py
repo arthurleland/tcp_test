@@ -1,43 +1,62 @@
+import selectors
 import socket
 import sys
-import threading
 
 
-def read_fun(conn, quit_flag):
-    while True:
-        stuff = conn.recv(1024)
-        if not stuff:
-            quit_flag.set()
-            break
-        print("*" + stuff.decode(), end="")
+def accept(soc):
+    conn, addr = soc.accept()
+    print("accepted", conn, "from", addr)
+    conn.setblocking(False)
+    sel.register(conn, selectors.EVENT_READ, read)
 
 
-def write_fun(conn, quit_flag):
-    for line in sys.stdin:
-        conn.sendall(line.encode())
-        if quit_flag:
-            break
+def read(conn):
+    data = conn.recv(1024)
+
+    if not data:
+        print("recv close", conn)
+        sel.unregister(conn)
+        sel.unregister(sys.stdin)
+        conn.close()
+        return
+
+    print("recv: ", data.decode(), end="")
+
+
+def write(conn):
+    line = sys.stdin.readline()
+
+    if line == "\n":
+        print("send close")
+        sel.unregister(conn)
+        sel.unregister(sys.stdin)
+        conn.close()
+        return
+
+    print("snd: ", line, end="")
+    conn.sendall(line.encode())
 
 
 def main():
-    hostname = "arthurschiro.com"
+    sel = selectors.DefaultSelector()
+
+    SERVER = "192.168.107.100"
     PORT = 10000
+    soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-    if hostname is not None:
-        SERVER = socket.gethostbyname(hostname)
+    soc.connect((SERVER, PORT))
+    print(f"connected via {soc.getsockname()}")
 
-    quit_flag = threading.Event()
+    soc.setblocking(False)
+    sel.register(conn, selectors.EVENT_READ, (read, soc))
+    sel.register(sys.stdin, selectors.EVENT_READ, (write, soc))
 
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as soc:
-        soc.connect((SERVER, PORT))
-        print(f"connected on: {soc.getsockname()}")
-
-        read_t = threading.Thread(target=read_fun, args=(soc, quit_flag))
-        write_t = threading.Thread(target=write_fun, args=(soc, quit_flag))
-        read_t.start()
-        write_t.start()
-        read_t.join()
-        write_t.join()
+    while True:
+        events = sel.select()
+        for key, mask in events:
+            callback = key.data[0]
+            callback(key.data[1])
 
     print("all done")
 

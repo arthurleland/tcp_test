@@ -40,9 +40,10 @@ def write(conn):
 def main():
     sel = selectors.DefaultSelector()
 
-    SERVER = ""
+    SERVER = "192.168.107.100"
     PORT = 10000
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
     soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     soc.bind((SERVER, PORT))
     soc.listen()
