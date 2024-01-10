@@ -48,6 +48,9 @@ def main():
     sel.register(sys.stdin, selectors.EVENT_READ, (write, conn, sel))
 
     while True:
+        if len(sel.get_map()) == 0:
+            break
+
         events = sel.select(timeout=0.1)
         for key, mask in events:
             callback = key.data[0]
