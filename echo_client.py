@@ -5,12 +5,16 @@ import sys
 def main():
     # SERVER = "192.168.12.102"
     SERVER = "10.1.10.100"
-    CLIENT = "192.168.0.128"
+    hostname = "arthurschiro.com"
+    # CLIENT = "192.168.0.128"
     PORT = 10000
+
+    if hostname is not None:
+        SERVER = socket.gethostbyname(hostname)
 
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as soc:
-            soc.bind((CLIENT, 0))
+            # soc.bind((CLIENT, 0))
             soc.connect((SERVER, PORT))
             print(f"connected via {soc.getsockname()}")
 

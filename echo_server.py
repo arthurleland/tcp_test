@@ -4,7 +4,7 @@ import socket
 def main():
     # SERVER = ""  # all interfaces
     # SERVER = "10.1.10.111"
-    SERVER = "192.168.8.130"
+    SERVER = "192.168.107.100"
     PORT = 10000
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
