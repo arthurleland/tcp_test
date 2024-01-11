@@ -64,7 +64,7 @@ class ChatClient(ChatSocket):
         while True:
             try:
                 self.sock.connect((server_addr, port))
-                print(f"connected via {self.sock.getsockname()}")
+                __print_connection_info(self.sock)
                 return ChatSocket(self.sock)
             except Exception as e:
                 time.sleep(0.1)
@@ -78,9 +78,18 @@ class ChatServer:
         self.server.listen()
 
     def accept(self):
-        sock, addr = self.server.accept()
-        print("accepted", sock, "from", addr)
+        sock, _ = self.server.accept()
+        __print_connection_info(sock)
         return ChatSocket(sock)
+
+
+def __print_connection_info(sock):
+    local_host = sock.getsockname()
+    remote_host = sock.getpeername()
+    print(
+        f"connecting: (local) {local_host[0]}:{local_host[1]}",
+        f" <==> (remote) {remote_host[0]}:{remote_host[1]}",
+    )
 
 
 def run_server(server_addr="", port=10000):
@@ -101,8 +110,8 @@ def main():
     server_addr = "192.168.107.100"
     port_num = 10000
 
-    # run_server(port=port_num)
-    run_client(server_addr=server_addr, port=port_num)
+    run_server(port=port_num)
+    # run_client(server_addr=server_addr, port=port_num)
     print("*** leaving main ***")
 
 
