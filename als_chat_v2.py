@@ -5,11 +5,38 @@ import time
 
 
 class ChatSocket:
-    def __init__(self, sock):
-        self.sock = sock
+    def __init__(self, sock=None):
         self.sel = selectors.DefaultSelector()
+        if sock is None:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        else:
+            self.sock = sock
 
+    def read(self):
+        data = self.sock.recv(1024)
+
+        if not data:
+            print("*** recv done ***")
+            self.sel.unregister(self.sock)
+            return
+
+        print("recv: ", data.decode(), end="")
+
+    def write(self):
+        line = sys.stdin.readline()
+
+        if line == "\n":
+            print("*** send done ***")
+            self.sel.unregister(sys.stdin)
+            self.sock.shutdown(socket.SHUT_WR)
+            return
+
+        print("send: ", line, end="")
+        self.sock.sendall(line.encode())
+
+    def chat(self):
         self.sock.setblocking(False)
+
         self.sel.register(
             self.sock,
             selectors.EVENT_READ,
@@ -21,32 +48,9 @@ class ChatSocket:
             data=self.write,
         )
 
-    def read(self):
-        data = self.sock.recv(1024)
-
-        if not data:
-            print("recv done")
-            self.sel.unregister(self.sock)
-            return
-
-        print("recv: ", data.decode(), end="")
-
-    def write(self):
-        line = sys.stdin.readline()
-
-        if line == "\n":
-            print("send done")
-            self.sel.unregister(sys.stdin)
-            self.sock.shutdown(socket.SHUT_WR)
-            return
-
-        print("send: ", line, end="")
-        self.sock.sendall(line.encode())
-
-    def chat(self):
         while True:
             if len(self.sel.get_map()) == 0:
-                print("chat done")
+                print("*** chat done ***")
                 self.sock.close()
                 break
 
@@ -55,10 +59,7 @@ class ChatSocket:
                 key.data()
 
 
-class ChatClient:
-    def __init__(self):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
+class ChatClient(ChatSocket):
     def connect(self, server_addr, port):
         while True:
             try:
@@ -77,12 +78,12 @@ class ChatServer:
         self.server.listen()
 
     def accept(self):
-        self.sock, addr = self.server.accept()
-        print("accepted", self.sock, "from", addr)
-        return ChatSocket(self.sock)
+        sock, addr = self.server.accept()
+        print("accepted", sock, "from", addr)
+        return ChatSocket(sock)
 
 
-def run_server(server_addr, port):
+def run_server(server_addr="", port=10000):
     server = ChatServer(server_addr, port)
     while True:
         print("*** server listening for connection ***")
@@ -90,19 +91,19 @@ def run_server(server_addr, port):
         conn.chat()
 
 
-def run_client(server_addr, port):
+def run_client(server_addr="127.0.0.1", port=10000):
     client = ChatClient()
-    conn = client.connect(server_addr, port)
-    conn.chat()
+    client.connect(server_addr, port)
+    client.chat()
 
 
 def main():
     server_addr = "192.168.107.100"
-    port = 10000
+    port_num = 10000
 
-    run_server(server_addr, port)
-    # run_client(server_addr,port)
-    print("leaving main")
+    # run_server(port=port_num)
+    run_client(server_addr=server_addr, port=port_num)
+    print("*** leaving main ***")
 
 
 if __name__ == "__main__":
