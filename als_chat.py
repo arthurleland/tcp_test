@@ -4,13 +4,21 @@ import sys
 import time
 
 
-class ChatConnection:
+class ChatClient:
     def __init__(self, conn=None):
         self.sel = selectors.DefaultSelector()
         if conn is None:
             self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         else:
             self.conn = conn
+
+    def connect(self, server_addr, port):
+        while True:
+            try:
+                self.conn.connect((server_addr, port))
+                print_connection_info(self.conn)
+            except Exception as e:
+                time.sleep(0.1)
 
     def read(self):
         data = self.conn.recv(1024)
@@ -59,18 +67,8 @@ class ChatConnection:
                 key.data()
 
 
-class ChatClient(ChatConnection):
-    def connect(self, server_addr, port):
-        while True:
-            try:
-                self.conn.connect((server_addr, port))
-                print_connection_info(self.conn)
-            except Exception as e:
-                time.sleep(0.1)
-
-
 class ChatServer:
-    def __init__(self, server_addr, port):
+    def __init__(self, server_addr="", port=10000):
         self.sel = selectors.DefaultSelector()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -86,9 +84,9 @@ class ChatServer:
     def accept(self, timeout=0.1):
         events = self.sel.select(timeout=timeout)
         if len(events) > 0:
-            conn, _ = events[0][0].fileobj.accept()
+            conn, _ = self.sock.accept()
             print_connection_info(conn)
-            return ChatConnection(conn)
+            return ChatClient(conn)
         return None
 
 
@@ -103,24 +101,15 @@ def print_connection_info(conn):
 
 def run_server(server_addr="", port=10000):
     server = ChatServer(server_addr, port)
-    # sel = selectors.DefaultSelector()
-    # sel.register(sys.stdin, selectors.EVENT_READ)
 
-    count = 0
     while True:
-        if count == 0:
-            print("*** listening for connection")
-            print("*** press enter to quit")
-            count += 1
+        print("*** listening for connection")
 
-        conn = server.accept(timeout=0.1)
-        if conn is not None:
-            conn.chat()
-            count = 0
-
-        # events = sel.select(timeout=0.1)
-        # if len(events) > 0:
-        #     return
+        while True:
+            conn = server.accept()
+            if conn is not None:
+                conn.chat()
+                break
 
 
 def run_client(server_addr="127.0.0.1", port=10000):
