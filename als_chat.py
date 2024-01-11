@@ -17,6 +17,7 @@ class ChatClient:
             try:
                 self.conn.connect((server_addr, port))
                 print_connection_info(self.conn)
+                break
             except Exception as e:
                 time.sleep(0.1)
 
