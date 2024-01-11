@@ -4,20 +4,20 @@ import sys
 import time
 
 
-class ChatSocket:
-    def __init__(self, sock=None):
+class ChatConnection:
+    def __init__(self, conn=None):
         self.sel = selectors.DefaultSelector()
-        if sock is None:
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if conn is None:
+            self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         else:
-            self.sock = sock
+            self.conn = conn
 
     def read(self):
-        data = self.sock.recv(1024)
+        data = self.conn.recv(1024)
 
         if not data:
-            print("*** recv done ***")
-            self.sel.unregister(self.sock)
+            print("*** recv done")
+            self.sel.unregister(self.conn)
             return
 
         print("recv: ", data.decode(), end="")
@@ -26,19 +26,19 @@ class ChatSocket:
         line = sys.stdin.readline()
 
         if line == "\n":
-            print("*** send done ***")
+            print("*** send done")
             self.sel.unregister(sys.stdin)
-            self.sock.shutdown(socket.SHUT_WR)
+            self.conn.shutdown(socket.SHUT_WR)
             return
 
         print("send: ", line, end="")
-        self.sock.sendall(line.encode())
+        self.conn.sendall(line.encode())
 
     def chat(self):
-        self.sock.setblocking(False)
+        self.conn.setblocking(False)
 
         self.sel.register(
-            self.sock,
+            self.conn,
             selectors.EVENT_READ,
             data=self.read,
         )
@@ -50,8 +50,8 @@ class ChatSocket:
 
         while True:
             if len(self.sel.get_map()) == 0:
-                print("*** chat done ***")
-                self.sock.close()
+                print("*** chat done")
+                self.conn.close()
                 break
 
             events = self.sel.select(timeout=0.1)
@@ -59,45 +59,68 @@ class ChatSocket:
                 key.data()
 
 
-class ChatClient(ChatSocket):
+class ChatClient(ChatConnection):
     def connect(self, server_addr, port):
         while True:
             try:
-                self.sock.connect((server_addr, port))
-                print_connection_info(self.sock)
-                return ChatSocket(self.sock)
+                self.conn.connect((server_addr, port))
+                print_connection_info(self.conn)
             except Exception as e:
                 time.sleep(0.1)
 
 
 class ChatServer:
     def __init__(self, server_addr, port):
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.server.bind((server_addr, port))
-        self.server.listen()
+        self.sel = selectors.DefaultSelector()
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock.bind((server_addr, port))
+        self.sock.listen()
+        self.sock.setblocking(False)
 
-    def accept(self):
-        sock, _ = self.server.accept()
-        print_connection_info(sock)
-        return ChatSocket(sock)
+        self.sel.register(
+            self.sock,
+            selectors.EVENT_READ,
+        )
+
+    def accept(self, timeout=0.1):
+        events = self.sel.select(timeout=timeout)
+        if len(events) > 0:
+            conn, _ = events[0][0].fileobj.accept()
+            print_connection_info(conn)
+            return ChatConnection(conn)
+        return None
 
 
-def print_connection_info(sock):
-    local_host = sock.getsockname()
-    remote_host = sock.getpeername()
+def print_connection_info(conn):
+    local_host = conn.getsockname()
+    remote_host = conn.getpeername()
     print(
-        f"connecting: (local) {local_host[0]}:{local_host[1]}",
+        f"*** connecting: (local) {local_host[0]}:{local_host[1]}",
         f" <==> (remote) {remote_host[0]}:{remote_host[1]}",
     )
 
 
 def run_server(server_addr="", port=10000):
     server = ChatServer(server_addr, port)
+    sel = selectors.DefaultSelector()
+    sel.register(sys.stdin, selectors.EVENT_READ)
+
+    count = 0
     while True:
-        print("*** server listening for connection ***")
-        conn = server.accept()
-        conn.chat()
+        if count == 0:
+            print("*** listening for connection")
+            print("*** press enter to quit")
+            count += 1
+
+        conn = server.accept(timeout=0.1)
+        if conn is not None:
+            conn.chat()
+            count = 0
+
+        events = sel.select(timeout=0.1)
+        if len(events) > 0:
+            return
 
 
 def run_client(server_addr="127.0.0.1", port=10000):
@@ -112,7 +135,7 @@ def main():
 
     run_server(port=port_num)
     # run_client(server_addr=server_addr, port=port_num)
-    print("*** leaving main ***")
+    print("*** leaving main")
 
 
 if __name__ == "__main__":
