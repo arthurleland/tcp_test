@@ -103,8 +103,8 @@ def print_connection_info(conn):
 
 def run_server(server_addr="", port=10000):
     server = ChatServer(server_addr, port)
-    sel = selectors.DefaultSelector()
-    sel.register(sys.stdin, selectors.EVENT_READ)
+    # sel = selectors.DefaultSelector()
+    # sel.register(sys.stdin, selectors.EVENT_READ)
 
     count = 0
     while True:
@@ -118,9 +118,9 @@ def run_server(server_addr="", port=10000):
             conn.chat()
             count = 0
 
-        events = sel.select(timeout=0.1)
-        if len(events) > 0:
-            return
+        # events = sel.select(timeout=0.1)
+        # if len(events) > 0:
+        #     return
 
 
 def run_client(server_addr="127.0.0.1", port=10000):
