@@ -31,7 +31,7 @@ class ChatConnection:
             self.conn.shutdown(socket.SHUT_WR)
             return
 
-        print("send: ", line, end="")
+        # print("send: ", line, end="")
         self.conn.sendall(line.encode())
 
     def chat(self):
@@ -96,7 +96,7 @@ def print_connection_info(conn):
     local_host = conn.getsockname()
     remote_host = conn.getpeername()
     print(
-        f"*** connecting: (local) {local_host[0]}:{local_host[1]}",
+        f"*** connected: (local) {local_host[0]}:{local_host[1]}",
         f" <==> (remote) {remote_host[0]}:{remote_host[1]}",
     )
 
