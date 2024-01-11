@@ -70,25 +70,15 @@ class ChatClient:
 
 class ChatServer:
     def __init__(self, server_addr="", port=10000):
-        self.sel = selectors.DefaultSelector()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((server_addr, port))
         self.sock.listen()
-        self.sock.setblocking(False)
 
-        self.sel.register(
-            self.sock,
-            selectors.EVENT_READ,
-        )
-
-    def accept(self, timeout=0.1):
-        events = self.sel.select(timeout=timeout)
-        if len(events) > 0:
-            conn, _ = self.sock.accept()
-            print_connection_info(conn)
-            return ChatClient(conn)
-        return None
+    def accept(self):
+        conn, _ = self.sock.accept()
+        print_connection_info(conn)
+        return ChatClient(conn)
 
 
 def print_connection_info(conn):
@@ -105,12 +95,8 @@ def run_server(server_addr="", port=10000):
 
     while True:
         print("*** listening for connection")
-
-        while True:
-            conn = server.accept()
-            if conn is not None:
-                conn.chat()
-                break
+        conn = server.accept()
+        conn.chat()
 
 
 def run_client(server_addr="127.0.0.1", port=10000):
