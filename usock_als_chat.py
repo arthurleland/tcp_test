@@ -99,26 +99,19 @@ def run_server(server_addr="", port=10000):
         conn.chat()
 
 
-def run_client(server_addr="127.0.0.1", server_port=10000, client_port=None):
+def run_client(server_addr="127.0.0.1", port=10000):
     client = ChatClient()
-    if client_port is not None:
-        client.conn.bind(("0.0.0.0", client_port))
-    client.connect(server_addr, server_port)
+    client.connect(server_addr, port)
     client.chat()
 
 
 def main():
     server_addr = "192.168.106.10"
     # server_addr = ""
-    server_port = 3000
-    client_port = 2000
+    port_num = 10000
 
-    # run_server(server_addr=server_addr, server_port=server_port)
-    run_client(
-        server_addr=server_addr,
-        server_port=server_port,
-        client_port=client_port,
-    )
+    run_server(server_addr=server_addr, port=port_num)
+    # run_client(server_addr=server_addr, port=port_num)
     print("*** leaving main")
 
 
