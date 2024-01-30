@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+import os
 import selectors
 import socket
 import sys
@@ -5,17 +7,33 @@ import time
 
 
 class ChatClient:
-    def __init__(self, conn=None):
+    def __init__(
+        self,
+        conn=None,
+        server_address=("127.0.0.1", 10000),
+        client_address=None,
+    ):
         self.sel = selectors.DefaultSelector()
+
         if conn is None:
-            self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            if isinstance(server_address, tuple):
+                self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                if client_address is not None:
+                    self.conn.setsockopt(
+                        socket.SOL_SOCKET, socket.SO_REUSEADDR, 1
+                    )
+                    self.conn.bind(client_address)
+            else:
+                self.conn = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+
+            self.connect(server_address)
         else:
             self.conn = conn
 
-    def connect(self, server_addr, port):
+    def connect(self, server_addr):
         while True:
             try:
-                self.conn.connect((server_addr, port))
+                self.conn.connect(server_addr)
                 print_connection_info(self.conn)
                 break
             except Exception as e:
@@ -69,10 +87,17 @@ class ChatClient:
 
 
 class ChatServer:
-    def __init__(self, server_addr="", server_port=10000):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.bind((server_addr, server_port))
+    def __init__(self, server_addr=("", 10000)):
+        if isinstance(server_addr, tuple):
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.sock.bind(server_addr)
+        else:
+            self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            if os.path.exists(server_addr):
+                os.remove(server_addr)
+            self.sock.bind(server_addr)
+
         self.sock.listen()
 
     def accept(self):
@@ -84,44 +109,65 @@ class ChatServer:
 def print_connection_info(conn):
     local_host = conn.getsockname()
     remote_host = conn.getpeername()
-    print(
-        f"*** connected: (local) {local_host[0]}:{local_host[1]}",
-        f" <==> (remote) {remote_host[0]}:{remote_host[1]}",
-    )
+    if conn.family is socket.AF_UNIX:
+        print(
+            f"*** connected: (local) '{local_host}' : ",
+            f"<==> (remote) '{remote_host}'",
+        )
+    else:
+        print(
+            f"*** connected: (local) {local_host[0]}:{local_host[1]} ",
+            f"<==> (remote) {remote_host[0]}:{remote_host[1]}",
+        )
 
 
-def run_server(server_addr="", server_port=10000):
-    server = ChatServer(server_addr, server_port)
+def run_server(server_address):
+    server = ChatServer(server_address)
 
     while True:
         print("*** listening for connection")
         conn = server.accept()
         conn.chat()
 
+        uinput = input("continue Y/n: ")
+        if uinput.lower() != "y" and uinput != "":
+            break
 
-def run_client(server_addr="127.0.0.1", server_port=10000, client_port=None):
-    client = ChatClient()
-    if client_port is not None:
-        client.conn.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        client.conn.bind(("0.0.0.0", client_port))
-    client.connect(server_addr, server_port)
+
+def run_client(server_address, client_address=None):
+    client = ChatClient(
+        server_address=server_address, client_address=client_address
+    )
     client.chat()
 
 
 def main():
-    server_addr = ""
-    server_port = 3000
+    # breakpoint()
 
-    # server_addr = "192.168.106.100"
-    # client_port = 2000
+    mode = "server"
+    if len(sys.argv) > 1:
+        mode = sys.argv[1]
 
-    run_server(server_addr=server_addr, server_port=server_port)
+    # server_address = ("127.0.0.1", 2000)
+    server_address = "~/tmp/foo"
+    if len(sys.argv) > 2:
+        server_address = eval(sys.argv[2])
 
-    # run_client(
-    #     server_addr=server_addr,
-    #     server_port=server_port,
-    #     client_port=client_port,
-    # )
+    if isinstance(server_address, str):
+        server_address = os.path.expanduser(server_address)
+
+    client_address = None
+    if len(sys.argv) > 3:
+        client_address = eval(sys.argv[3])
+
+    if mode == "server":
+        run_server(server_address)
+    else:
+        run_client(
+            server_address=server_address,
+            client_address=client_address,
+        )
+
     print("*** leaving main")
 
 
