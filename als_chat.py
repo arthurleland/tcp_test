@@ -69,10 +69,10 @@ class ChatClient:
 
 
 class ChatServer:
-    def __init__(self, server_addr="", port=10000):
+    def __init__(self, server_addr="", server_port=10000):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.bind((server_addr, port))
+        self.sock.bind((server_addr, server_port))
         self.sock.listen()
 
     def accept(self):
@@ -90,8 +90,8 @@ def print_connection_info(conn):
     )
 
 
-def run_server(server_addr="", port=10000):
-    server = ChatServer(server_addr, port)
+def run_server(server_addr="", server_port=10000):
+    server = ChatServer(server_addr, server_port)
 
     while True:
         print("*** listening for connection")
@@ -102,23 +102,26 @@ def run_server(server_addr="", port=10000):
 def run_client(server_addr="127.0.0.1", server_port=10000, client_port=None):
     client = ChatClient()
     if client_port is not None:
+        client.conn.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         client.conn.bind(("0.0.0.0", client_port))
     client.connect(server_addr, server_port)
     client.chat()
 
 
 def main():
-    server_addr = "192.168.106.10"
-    # server_addr = ""
+    server_addr = ""
     server_port = 3000
-    client_port = 2000
 
-    # run_server(server_addr=server_addr, server_port=server_port)
-    run_client(
-        server_addr=server_addr,
-        server_port=server_port,
-        client_port=client_port,
-    )
+    # server_addr = "192.168.106.100"
+    # client_port = 2000
+
+    run_server(server_addr=server_addr, server_port=server_port)
+
+    # run_client(
+    #     server_addr=server_addr,
+    #     server_port=server_port,
+    #     client_port=client_port,
+    # )
     print("*** leaving main")
 
 
