@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import socket
 import sys
 import time
@@ -7,6 +8,7 @@ def main():
     SERVER = "192.168.107.100"  # The server's hostname or IP address
     # CLIENT = "192.168.12.102"  # this specifies the network interface to use
     # SERVER = "67.169.190.38"  # The server's hostname or IP address
+    SERVER = "127.0.0.1"
     PORT = 10000  # The port used by the server
 
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

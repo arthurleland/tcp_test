@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import pathlib
 import selectors
 import socket
 import sys
@@ -92,6 +93,7 @@ class ChatServer:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.sock.bind(server_addr)
+
         else:
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             if os.path.exists(server_addr):
@@ -131,6 +133,8 @@ def run_server(server_address):
 
         uinput = input("continue Y/n: ")
         if uinput.lower() != "y" and uinput != "":
+            if server.sock.family == socket.AF_UNIX:
+                pathlib.Path(server.sock.getsockname()).unlink()
             break
 
 
@@ -149,7 +153,7 @@ def main():
         mode = sys.argv[1]
 
     # server_address = ("127.0.0.1", 2000)
-    server_address = "~/tmp/foo"
+    server_address = "sock"
     if len(sys.argv) > 2:
         server_address = eval(sys.argv[2])
 
@@ -172,4 +176,5 @@ def main():
 
 
 if __name__ == "__main__":
+    print(f"pid: {os.getpid()}")
     main()
