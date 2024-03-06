@@ -146,7 +146,7 @@ def run_client(server_address, client_address=None):
 
 
 def main():
-    # breakpoint()
+    breakpoint()
 
     mode = "server"
     if len(sys.argv) > 1:
@@ -176,5 +176,11 @@ def main():
 
 
 if __name__ == "__main__":
+    print("Usage:")
+    print("./als_chat.py <server/client> <server-address(inet or socket)> [optional client address specificaiton]")
+    print("./als_chat.py server '(\"127.0.0.1\",2000)'")
+    print("./als_chat.py client '(\"127.0.0.1\",2000)' '(\"127.0.0.1\",3000)'")
+    print("./als_chat.py server '~/tmp/sock")
+    print("./als_chat.py client '~/tmp/sock")
     print(f"pid: {os.getpid()}")
     main()
