@@ -32,12 +32,16 @@ class ChatClient:
             self.conn = conn
 
     def connect(self, server_addr):
+        tries = 3
         while True:
             try:
                 self.conn.connect(server_addr)
                 print_connection_info(self.conn)
                 break
             except Exception as e:
+                tries -= 1
+                if tries <= 0:
+                    raise
                 time.sleep(0.1)
 
     def read(self):
@@ -131,8 +135,8 @@ def run_server(server_address):
         conn = server.accept()
         conn.chat()
 
-        uinput = input("continue Y/n: ")
-        if uinput.lower() != "y" and uinput != "":
+        uinput = input("continue y/N: ")
+        if uinput.lower() != "y":
             if server.sock.family == socket.AF_UNIX:
                 pathlib.Path(server.sock.getsockname()).unlink()
             break
@@ -149,33 +153,33 @@ def main():
 
     error_message = """
     usage:
-    ./als_chat.py <mode> <address_format> <server_address> [client_address]
+    ./als_chat.py <mode> <address_family> <server_address> [client_address]
     \tmode = server or client
-    \taddress_format = inet or unix
+    \taddress_family = inet or unix
     \tserver_address = x.x.x.x portnum or ~/sock
     """
 
     # breakpoint()
     try:
-        mode, address_format = sys.argv[1:3]
-        if mode not in ("server", "client") or address_format not in (
+        mode, address_family = sys.argv[1:3]
+        if mode not in ("server", "client") or address_family not in (
             "inet",
             "unix",
         ):
             raise Exception()
 
-        if address_format == "inet":
+        if address_family == "inet":
             server_address = (sys.argv[3], eval(sys.argv[4]))
-        elif address_format == "unix":
+        elif address_family == "unix":
             server_address = os.path.expanduser(sys.argv[3])
 
         if mode == "server":
             run_server(server_address)
         elif mode == "client":
             try:
-                if address_format == "inet":
+                if address_family == "inet":
                     client_address = (sys.argv[5], eval(sys.argv[6]))
-                elif address_format == "unix":
+                elif address_family == "unix":
                     client_address = os.path.expanduser(sys.argv[4])
             except Exception:
                 client_address = None
@@ -186,7 +190,7 @@ def main():
             )
     except Exception as e:
         print(error_message)
-        # raise
+        raise
 
 
 if __name__ == "__main__":
