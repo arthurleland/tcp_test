@@ -146,41 +146,49 @@ def run_client(server_address, client_address=None):
 
 
 def main():
+
+    error_message = """
+    usage:
+    ./als_chat.py <mode> <address_format> <server_address> [client_address]
+    \tmode = server or client
+    \taddress_format = inet or unix
+    \tserver_address = x.x.x.x portnum or ~/sock
+    """
+
     # breakpoint()
+    try:
+        mode, address_format = sys.argv[1:3]
+        if mode not in ("server", "client") or address_format not in (
+            "inet",
+            "unix",
+        ):
+            raise Exception()
 
-    mode = "server"
-    if len(sys.argv) > 1:
-        mode = sys.argv[1]
+        if address_format == "inet":
+            server_address = (sys.argv[3], eval(sys.argv[4]))
+        elif address_format == "unix":
+            server_address = os.path.expanduser(sys.argv[3])
 
-    # server_address = ("127.0.0.1", 2000)
-    server_address = "sock"
-    if len(sys.argv) > 2:
-        server_address = eval(sys.argv[2])
+        if mode == "server":
+            run_server(server_address)
+        elif mode == "client":
+            try:
+                if address_format == "inet":
+                    client_address = (sys.argv[5], eval(sys.argv[6]))
+                elif address_format == "unix":
+                    client_address = os.path.expanduser(sys.argv[4])
+            except Exception:
+                client_address = None
 
-    if isinstance(server_address, str):
-        server_address = os.path.expanduser(server_address)
-
-    client_address = None
-    if len(sys.argv) > 3:
-        client_address = eval(sys.argv[3])
-
-    if mode == "server":
-        run_server(server_address)
-    else:
-        run_client(
-            server_address=server_address,
-            client_address=client_address,
-        )
-
-    print("*** leaving main")
+            run_client(
+                server_address=server_address,
+                client_address=client_address,
+            )
+    except Exception as e:
+        print(error_message)
+        # raise
 
 
 if __name__ == "__main__":
-    print("Usage:")
-    print("./als_chat.py <server/client> <server-address(inet or socket)> [optional client address specificaiton]")
-    print("./als_chat.py server '(\"127.0.0.1\",2000)'")
-    print("./als_chat.py client '(\"127.0.0.1\",2000)' '(\"127.0.0.1\",3000)'")
-    print("./als_chat.py server '\"~/tmp/sock\"'")
-    print("./als_chat.py client '\"~/tmp/sock\"'")
     print(f"pid: {os.getpid()}")
     main()
