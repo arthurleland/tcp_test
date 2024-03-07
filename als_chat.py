@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+"""
+use this to create a listening socket or use it to connect to some 
+inet or unix socket
+"""
 import os
 import pathlib
 import selectors
