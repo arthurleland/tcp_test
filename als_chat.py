@@ -19,7 +19,7 @@ class ChatClient:
         client_address=None,
     ):
         self.sel = selectors.DefaultSelector()
-        #comm
+        
         if conn is None:
             if isinstance(server_address, tuple):
                 self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
