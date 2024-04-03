@@ -4,7 +4,7 @@ import sys
 
 
 def main():
-    error_message = "usage:\n{tcp | udp} dst_addr dst_port [src_addr src_port]"
+    error_message = "usage:\n ./script_name {tcp | udp} dst_addr dst_port [src_addr src_port]"
     try:
         if sys.argv[1] == "tcp":
             socket_type = socket.SOCK_STREAM
@@ -22,7 +22,7 @@ def main():
 
     except Exception as e:
         print(error_message)
-        raise
+        sys.exit()
 
     message = "hello world\n"
     with socket.socket(socket.AF_INET, socket_type) as soc:
