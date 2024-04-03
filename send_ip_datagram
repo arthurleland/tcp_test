@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+import socket
+import sys
+
+
+def main():
+    error_message = "usage:\n{tcp | udp} dst_addr dst_port [src_addr src_port]"
+    try:
+        if sys.argv[1] == "tcp":
+            socket_type = socket.SOCK_STREAM
+        elif sys.argv[1] == "udp":
+            socket_type = socket.SOCK_DGRAM
+        else:
+            raise Exception()
+
+        (dst_addr, dst_port) = sys.argv[2], int(sys.argv[3])
+
+        if len(sys.argv) == 6:
+            src_addr, src_port = sys.argv[4], int(sys.argv[5])
+        else:
+            src_addr, src_port = None, None
+
+    except Exception as e:
+        print(error_message)
+        raise
+
+    message = "hello world\n"
+    with socket.socket(socket.AF_INET, socket_type) as soc:
+        if src_addr is not None and src_port is not None:
+            soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            soc.bind((src_addr, src_port))
+
+        print(f"src addr: {soc.getsockname()}")
+
+        if socket_type == socket.SOCK_STREAM:
+            soc.connect((dst_addr, dst_port))
+            soc.sendall(message.encode())
+        else:
+            soc.sendto(message.encode(), (dst_addr, dst_port))
+
+    print("all done")
+
+
+if __name__ == "__main__":
+    main()
